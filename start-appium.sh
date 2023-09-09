@@ -4,16 +4,17 @@
 gmsaas config set android-sdk-path $ANDROID_HOME
 gmsaas auth login $GM_USERNAME $GM_PASSWORD
 echo "Login successful!"
-gmsaas instances start 95016679-8f8d-4890-b026-e4ad889aadf1 hrdashboard-emulator
-echo "Instance Started!"
-gmsaas instances list > instances.txt
-echo "Instance List Fetched!"
-cat instances.txt
+
+python3.9 gm_app.py --start-instance
+
 echo "Sleep 20 seconds!"
 sleep 20
-echo "$(cat instances.txt | awk '/hr-dashboard-emulator/ {print $(NF-3)}')"
+
+python3.9 gm_app.py --get-instance-id
+
+echo "$(python3.9 gm_app.py --get-instance-id)"
 echo "Initiate ADB connect!"
-gmsaas instances adbconnect "$(cat instances.txt | awk '/hr-dashboard-emulator/ {print $(NF-3)}')"
+gmsaas instances adbconnect "$(python3.9 gm_app.py --get-instance-id | sed -e 's/^[ \t]*//' -e 's/[ \t]*$//')"
 
 echo "Sleep 5 seconds!"
 # give some time to adb
