@@ -8,7 +8,7 @@ echo "Login successful!"
 python3.9 gm_app.py --start-instance
 
 echo "Sleep 20 seconds!"
-sleep 20
+sleep 5
 
 python3.9 gm_app.py --get-instance-id
 
