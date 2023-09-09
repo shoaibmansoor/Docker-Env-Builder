@@ -1,6 +1,7 @@
 import argparse
 import os
 import random
+import time
 
 import requests
 
@@ -12,6 +13,8 @@ class GenyMotionEmulatorUtil:
         self.instance_uuid = '95016679-8f8d-4890-b026-e4ad889aadf1'
         self.user_email = os.getenv('GM_USERNAME')
         self.user_pwd = os.getenv('GM_PASSWORD')
+        self.cur_id: str = None
+        self.timeout = 60
 
     def login(self):
         response = requests.post(f'{self.api_uri}/v1/users/login', json={
@@ -49,9 +52,34 @@ class GenyMotionEmulatorUtil:
                 'Authorization': self.bearer_token
             },
         )
-
+        
         assert response.status_code != 200, f'Unable to start Emulator Instance. Reason: {response.text}'
+        self.cur_id = response.json()['uuid']
         print(f'Instance started with ID: {random_id}')
+
+        self.wait_until_running()
+        print(f'Instance in STARTED state with: {self.cur_id}')        
+
+    def wait_until_running(self):
+        end_time = time.time() + self.timeout
+
+        while True:
+            if time.time() > end_time:
+                raise TimeoutError(
+                    f"Emulator didn't come in started state after {self.timeout} seconds."
+                )
+
+            time.sleep(5)
+
+            response = requests.get(f'{self.api_uri}/v1/instances/{self.cur_id}', headers={
+                'Authorization': self.bearer_token
+            })
+
+            if not response.ok or response.json().get('state', '') != 'ONLINE':
+                continue
+            else:
+                break
+
 
 def parse_args():
     parser = argparse.ArgumentParser(add_help=True)
